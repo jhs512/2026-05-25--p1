@@ -15,15 +15,7 @@ declare
     v_member_id bigint;
     v_member public.members;
 begin
-    v_member_id := public.current_member_id();
-
-    if v_member_id is null then
-        raise exception '로그인이 필요합니다.';
-    end if;
-
-    if not public.current_user_is_active() then
-        raise exception 'ACTIVE 회원만 회원 정보를 수정할 수 있습니다.';
-    end if;
+    v_member_id := public.require_active_member();
 
     if nullif(trim(p_username), '') is null then
         raise exception 'username은 필수입니다.';

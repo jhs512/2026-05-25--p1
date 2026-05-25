@@ -64,6 +64,7 @@ schema_paths = [
   "./schemas/40_auth_provisioning.sql",
   "./schemas/50_member_metadata_sync.sql",
   "./schemas/60_jwt_helpers.sql",
+  "./schemas/65_member_guards.sql",
   "./schemas/70_members_rls.sql",
   "./schemas/80_member_public_profiles.sql",
   "./schemas/90_modify_member.sql",

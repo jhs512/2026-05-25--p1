@@ -1,5 +1,27 @@
 -- 게시글 쓰기 RPC (ADR-0001: 쓰기는 SECURITY DEFINER 함수, search_path 고정 + 자체 인가).
 -- 직접 테이블 DML은 posts RLS에서 차단됨.
+-- 공통 가드는 require_active_member()(65), 제목·내용 검증은 아래 validate_post_text로 모은다.
+
+-- 제목·내용 검증 (create/modify_post 공유).
+create or replace function public.validate_post_text(p_title text, p_content text)
+returns void
+language plpgsql
+immutable
+as $$
+begin
+    if nullif(trim(p_title), '') is null then
+        raise exception '제목은 필수입니다.';
+    end if;
+
+    if length(trim(p_title)) > 200 then
+        raise exception '제목은 200자를 넘을 수 없습니다.';
+    end if;
+
+    if nullif(trim(p_content), '') is null then
+        raise exception '내용은 필수입니다.';
+    end if;
+end;
+$$;
 
 -- 생성
 create or replace function public.create_post(
@@ -16,27 +38,8 @@ declare
     v_member_id bigint;
     v_post public.posts;
 begin
-    v_member_id := public.current_member_id();
-
-    if v_member_id is null then
-        raise exception '로그인이 필요합니다.';
-    end if;
-
-    if not public.current_user_is_active() then
-        raise exception 'ACTIVE 회원만 글을 작성할 수 있습니다.';
-    end if;
-
-    if nullif(trim(p_title), '') is null then
-        raise exception '제목은 필수입니다.';
-    end if;
-
-    if length(trim(p_title)) > 200 then
-        raise exception '제목은 200자를 넘을 수 없습니다.';
-    end if;
-
-    if nullif(trim(p_content), '') is null then
-        raise exception '내용은 필수입니다.';
-    end if;
+    v_member_id := public.require_active_member();
+    perform public.validate_post_text(p_title, p_content);
 
     insert into public.posts (author_id, title, content, visibility)
     values (v_member_id, trim(p_title), trim(p_content), p_visibility)
@@ -67,28 +70,9 @@ declare
     v_is_admin boolean;
     v_post public.posts;
 begin
-    v_member_id := public.current_member_id();
+    v_member_id := public.require_active_member();
     v_is_admin := public.current_user_has_role('ADMIN');
-
-    if v_member_id is null then
-        raise exception '로그인이 필요합니다.';
-    end if;
-
-    if not public.current_user_is_active() then
-        raise exception 'ACTIVE 회원만 글을 수정할 수 있습니다.';
-    end if;
-
-    if nullif(trim(p_title), '') is null then
-        raise exception '제목은 필수입니다.';
-    end if;
-
-    if length(trim(p_title)) > 200 then
-        raise exception '제목은 200자를 넘을 수 없습니다.';
-    end if;
-
-    if nullif(trim(p_content), '') is null then
-        raise exception '내용은 필수입니다.';
-    end if;
+    perform public.validate_post_text(p_title, p_content);
 
     update public.posts
     set
@@ -125,16 +109,8 @@ declare
     v_is_admin boolean;
     v_deleted_id bigint;
 begin
-    v_member_id := public.current_member_id();
+    v_member_id := public.require_active_member();
     v_is_admin := public.current_user_has_role('ADMIN');
-
-    if v_member_id is null then
-        raise exception '로그인이 필요합니다.';
-    end if;
-
-    if not public.current_user_is_active() then
-        raise exception 'ACTIVE 회원만 글을 삭제할 수 있습니다.';
-    end if;
 
     delete from public.posts
     where id = p_post_id
