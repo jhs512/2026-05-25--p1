@@ -5,7 +5,7 @@ import { useAuth } from '@/auth/AuthProvider'
 import { canManagePost } from '@/auth/member'
 import { PostDetail } from '@/posts/PostDetail'
 
-export const Route = createFileRoute('/posts/$id')({
+export const Route = createFileRoute('/posts/$id/')({
   component: PostDetailRoute,
 })
 
