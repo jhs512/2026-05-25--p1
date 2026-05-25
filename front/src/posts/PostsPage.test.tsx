@@ -28,15 +28,19 @@ function renderWithQuery(ui: ReactElement) {
 const samplePosts: Post[] = [
   {
     id: 2,
+    author: { id: 10, username: 'user1', displayName: '유저원', profileImageUrl: null },
     title: '최신 글',
     content: '가장 최근 본문',
+    visibility: 'PUBLIC',
     createdAt: '2026-05-25T00:00:00Z',
     modifiedAt: '2026-05-25T00:00:00Z',
   },
   {
     id: 1,
+    author: { id: 11, username: 'user2', displayName: '유저투', profileImageUrl: null },
     title: '오래된 글',
     content: '예전 본문',
+    visibility: 'PUBLIC',
     createdAt: '2026-05-20T00:00:00Z',
     modifiedAt: '2026-05-20T00:00:00Z',
   },
@@ -81,5 +85,14 @@ describe('PostsPage', () => {
     expect(screen.getByText('오래된 글')).toBeInTheDocument()
     expect(screen.getByText('가장 최근 본문')).toBeInTheDocument()
     expect(screen.getByText('예전 본문')).toBeInTheDocument()
+  })
+
+  it('renders each Post author once posts load', async () => {
+    vi.mocked(fetchPosts).mockResolvedValue(samplePosts)
+
+    renderWithQuery(<PostsPage />)
+
+    expect(await screen.findByText('유저원')).toBeInTheDocument()
+    expect(screen.getByText('유저투')).toBeInTheDocument()
   })
 })

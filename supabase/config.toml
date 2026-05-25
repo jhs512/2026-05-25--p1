@@ -55,7 +55,25 @@ max_client_conn = 100
 enabled = true
 # Specifies an ordered list of schema files that describe your database.
 # Supports glob patterns relative to supabase directory: "./schemas/*.sql"
-schema_paths = []
+# 의존성 순서로 명시 (lexicographic). 슬라이스가 늘면 여기에 추가한다.
+schema_paths = [
+  "./schemas/10_extensions.sql",
+  "./schemas/20_enums.sql",
+  "./schemas/25_functions_shared.sql",
+  "./schemas/30_members.sql",
+  "./schemas/40_auth_provisioning.sql",
+  "./schemas/50_member_metadata_sync.sql",
+  "./schemas/60_jwt_helpers.sql",
+  "./schemas/65_member_guards.sql",
+  "./schemas/70_members_rls.sql",
+  "./schemas/80_member_public_profiles.sql",
+  "./schemas/90_modify_member.sql",
+  "./schemas/100_posts.sql",
+  "./schemas/110_posts_rls.sql",
+  "./schemas/120_get_post.sql",
+  "./schemas/130_get_posts.sql",
+  "./schemas/140_post_write_rpc.sql"
+]
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
