@@ -2,22 +2,22 @@
 status: accepted
 ---
 
-# Testing strategy: don't mock supabase-js; test each concern at the level that proves it
+# 테스트 전략: supabase-js를 모킹하지 말고, 각 관심사를 그것을 증명하는 레벨에서 테스트한다
 
-Because the app talks to Supabase directly (see [ADR-0001](./0001-client-direct-reads-rls-sql-functions-for-writes.md)), most data code is thin glue around a remote service. We test each concern at the level where the test proves something real, and we **never mock `supabase-js`** — mocking its fluent query builder (`.from().select().order()`) only verifies that the mock returns what we told it to, not that the query or RLS behaves.
+앱이 Supabase와 직접 통신하므로(ADR-0001 참고) 대부분의 데이터 코드는 원격 서비스를 감싼 얇은 글루다. 우리는 각 관심사를 테스트가 실제로 무언가를 증명하는 레벨에서 테스트하고, **`supabase-js`는 절대 모킹하지 않는다** — 그 fluent 쿼리 빌더(`.from().select().order()`)를 모킹하는 것은 쿼리나 RLS가 제대로 동작하는지가 아니라 모킹이 시킨 대로 값을 돌려주는지만 검증할 뿐이다.
 
-## Decisions
+## 결정
 
-- **Mock only at our own seam.** UI/component tests mock the data-access module (e.g. `fetchPosts`), not `supabase-js`. The seam we own is stable; the client's builder is not.
-- **RLS is the security boundary, so it is tested for real.** JS integration tests (Vitest) hit the local stack with a real anon key and assert: anon can `SELECT`; anon's `INSERT/UPDATE/DELETE` are rejected. A `service_role` client is used only for setup/teardown. This exercises the exact PostgREST + JWT + RLS path the SPA uses.
-- **Two suites, split by dependency.** `fast` (jsdom, no external deps — unit + component) runs on every save and in CI. `integration` (needs `supabase start`) runs locally now; an integration CI job is deferred until it earns its setup cost.
+- **모킹은 우리 소유의 경계에서만.** UI/컴포넌트 테스트는 `supabase-js`가 아니라 데이터 접근 모듈(예: `fetchPosts`)을 모킹한다. 우리가 소유한 경계는 안정적이지만, 클라이언트의 빌더는 그렇지 않다.
+- **RLS는 보안 경계이므로 실제로 테스트한다.** JS 통합 테스트(Vitest)는 실제 anon 키로 로컬 스택을 때려서 다음을 단언한다: anon은 `SELECT` 가능, anon의 `INSERT/UPDATE/DELETE`는 거부됨. `service_role` 클라이언트는 셋업/티어다운에만 쓴다. 이는 SPA가 실제로 타는 PostgREST + JWT + RLS 경로를 그대로 행사한다.
+- **의존성으로 나뉜 두 스위트.** `fast`(jsdom, 외부 의존 없음 — 유닛 + 컴포넌트)는 매 저장과 CI에서 돈다. `integration`(`supabase start` 필요)은 지금은 로컬에서 돌고, 통합 CI 잡은 셋업 비용을 정당화할 때까지 보류한다.
 
-## Considered options / deliberate deferrals
+## 검토한 대안 / 의도적 보류
 
-- **pgTAP (`supabase test db`) — deferred.** Worth it for the *internal* logic of the CUD SQL functions, which don't exist yet (ADR-0001). Introduce it alongside the first write function, not before.
-- **E2E (Playwright) — deferred.** integration + component already cover the read-only listing end to end; E2E only adds build/env-wiring fidelity, caught for now by a manual smoke. Introduce it with the first real multi-step user flow (auth, create-post).
+- **pgTAP(`supabase test db`) — 보류.** CUD SQL 함수의 *내부* 로직에 가치가 있으나, 그 함수들은 아직 없다(ADR-0001). 첫 쓰기 함수와 함께 도입하고, 그 전엔 아니다.
+- **E2E(Playwright) — 보류.** 통합 + 컴포넌트가 이미 읽기 전용 목록을 끝에서 끝까지 커버한다. E2E는 빌드/환경 배선 충실도만 더하는데, 그건 지금은 수동 스모크로 잡는다. 첫 실제 멀티 스텝 사용자 플로우(인증, 글 생성)와 함께 도입한다.
 
-## Consequences
+## 결과
 
-- A future engineer should **not** "fix" the absence of supabase-js mock unit tests, pgTAP, or E2E — each is a deliberate, dated deferral, not an oversight.
-- The `integration` suite requires the local Supabase stack; developers run `supabase start` before it. The fast suite never does.
+- 미래의 엔지니어는 supabase-js 모킹 유닛 테스트, pgTAP, E2E의 부재를 **"고치려" 하면 안 된다** — 각각은 누락이 아니라 의도적이고 시점이 정해진 보류다.
+- `integration` 스위트는 로컬 Supabase 스택을 요구한다. 개발자는 그 전에 `supabase start`를 실행한다. fast 스위트는 결코 그러지 않는다.

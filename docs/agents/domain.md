@@ -1,17 +1,17 @@
-# Domain Docs
+# 도메인 문서
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+엔지니어링 스킬이 코드베이스를 탐색할 때 이 저장소의 도메인 문서를 어떻게 소비해야 하는가.
 
-This repo is **single-context**: one `CONTEXT.md` and one `docs/adr/` at the repo root.
+이 저장소는 **단일 컨텍스트**다: 저장소 루트에 `CONTEXT.md` 하나와 `docs/adr/` 하나.
 
-## Before exploring, read these
+## 탐색 전에 읽을 것
 
-- **`CONTEXT.md`** at the repo root — the project's domain glossary.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in.
+- 저장소 루트의 **`CONTEXT.md`** — 프로젝트의 도메인 용어집.
+- **`docs/adr/`** — 작업하려는 영역과 맞닿은 ADR을 읽는다.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The producer skill (`/grill-with-docs`) creates them lazily when terms or decisions actually get resolved.
+이 파일들 중 무엇이 없더라도 **조용히 진행한다**. 부재를 알리지 말고, 미리 만들라고 제안하지도 마라. 생산자 스킬(`/grill-with-docs`)이 용어나 결정이 실제로 해소될 때 lazy하게 만든다.
 
-## File structure
+## 파일 구조
 
 ```
 /
@@ -22,14 +22,14 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 └── src/
 ```
 
-## Use the glossary's vocabulary
+## 용어집의 어휘를 사용하라
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+출력이 도메인 개념을 가리킬 때(이슈 제목, 리팩터 제안, 가설, 테스트 이름 등) `CONTEXT.md`에 정의된 그 용어를 써라. 용어집이 명시적으로 지양하는 동의어로 흘러가지 마라.
 
-If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/grill-with-docs`).
+필요한 개념이 아직 용어집에 없다면, 그것은 신호다 — 프로젝트가 쓰지 않는 언어를 만들어내고 있거나(재고하라), 진짜 공백이 있거나(`/grill-with-docs`를 위해 기록하라).
 
-## Flag ADR conflicts
+## ADR 충돌을 알려라
 
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+출력이 기존 ADR과 모순된다면, 조용히 덮어쓰지 말고 명시적으로 드러내라:
 
-> _Contradicts ADR-0007 (event-sourced orders) — but worth reopening because…_
+> _ADR-0007(event-sourced orders)과 모순됨 — 하지만 다시 열어볼 가치가 있는 이유는…_
