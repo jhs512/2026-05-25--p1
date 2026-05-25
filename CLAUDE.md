@@ -2,9 +2,9 @@
 
 ## 작업지침
 - 모든 문서는 한글로 작성
-- codegraph 활용
-- 소스코드 수정은 세레나 mcp
-- 최대한 matt pocock의 스킬을 활용한다.
+- 소스코드 구조적 파악은 codegraph 활용을 우선시
+- 소스코드 수정은 SERENA의 mcp를 활용을 우선시
+- 최대한 matt pocock의 스킬을 활용
 - 항상 /caveman 사용
 
 ## 유용한 명령어
