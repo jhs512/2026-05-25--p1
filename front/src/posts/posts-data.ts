@@ -74,6 +74,17 @@ export const postsQueryOptions = queryOptions({
   queryFn: () => fetchPosts(),
 })
 
+/** The `/` listing query, keyed by keyword + sort so search/sort state is
+ * reflected in the cache and the URL (the route owns the params). */
+export function searchPostsQueryOptions(query: { keyword?: string | null; sort?: PostSort }) {
+  const keyword = query.keyword ?? null
+  const sort = query.sort ?? 'CREATED_AT_DESC'
+  return queryOptions({
+    queryKey: ['posts', 'search', keyword, sort],
+    queryFn: () => fetchPosts({ keyword, sort }),
+  })
+}
+
 /** The current Member's own Posts (all visibilities, since RLS lets the author
  * see their own UNLISTED/PRIVATE). */
 export function myPostsQueryOptions(authorId: number) {
