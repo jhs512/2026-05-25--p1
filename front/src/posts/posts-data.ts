@@ -39,15 +39,30 @@ function toPost(row: PostAuthorRow): Post {
   }
 }
 
+export type PostSort =
+  | 'RELEVANCE'
+  | 'CREATED_AT_DESC'
+  | 'CREATED_AT_ASC'
+  | 'MODIFIED_AT_DESC'
+  | 'MODIFIED_AT_ASC'
+
+export type PostsQuery = {
+  keyword?: string | null
+  authorId?: number | null
+  sort?: PostSort
+  limit?: number
+  offset?: number
+}
+
 /** Reads Posts via the get_posts RPC; RLS inside the function decides which Posts
  * are visible (ADR-0004). The only place a Post listing query is constructed. */
-export async function fetchPosts(): Promise<Post[]> {
+export async function fetchPosts(query: PostsQuery = {}): Promise<Post[]> {
   const { data, error } = await supabase.rpc('get_posts', {
-    p_keyword: null,
-    p_author_id: null,
-    p_sort: 'CREATED_AT_DESC',
-    p_limit: 20,
-    p_offset: 0,
+    p_keyword: query.keyword ?? null,
+    p_author_id: query.authorId ?? null,
+    p_sort: query.sort ?? 'CREATED_AT_DESC',
+    p_limit: query.limit ?? 20,
+    p_offset: query.offset ?? 0,
   })
 
   if (error) throw error
@@ -56,8 +71,17 @@ export async function fetchPosts(): Promise<Post[]> {
 
 export const postsQueryOptions = queryOptions({
   queryKey: ['posts'],
-  queryFn: fetchPosts,
+  queryFn: () => fetchPosts(),
 })
+
+/** The current Member's own Posts (all visibilities, since RLS lets the author
+ * see their own UNLISTED/PRIVATE). */
+export function myPostsQueryOptions(authorId: number) {
+  return queryOptions({
+    queryKey: ['posts', 'author', authorId],
+    queryFn: () => fetchPosts({ authorId }),
+  })
+}
 
 /** Reads a single Post via get_post (SECURITY DEFINER, ADR-0004): PUBLIC/UNLISTED
  * to anyone, PRIVATE only to its Author or an admin. Returns null when not

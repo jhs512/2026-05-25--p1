@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
-import type { PostVisibility } from '@/posts/post'
+import { VISIBILITY_LABELS, type PostVisibility } from '@/posts/post'
 import type { PostInput } from '@/posts/posts-data'
 
 export const postSchema = z.object({
@@ -9,12 +9,6 @@ export const postSchema = z.object({
   content: z.string().trim().min(1, '내용은 필수입니다.'),
   visibility: z.enum(['PUBLIC', 'UNLISTED', 'PRIVATE']),
 })
-
-const VISIBILITY_LABELS: Record<PostVisibility, string> = {
-  PUBLIC: '공개',
-  UNLISTED: '링크 공개',
-  PRIVATE: '비공개',
-}
 
 function firstError(errors: unknown[]): string | null {
   if (errors.length === 0) return null

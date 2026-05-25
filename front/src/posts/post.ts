@@ -13,6 +13,13 @@ export type PostAuthor = {
 /** A Post's sharing level (CONTEXT.md). Not a draft/published lifecycle. */
 export type PostVisibility = 'PUBLIC' | 'UNLISTED' | 'PRIVATE'
 
+/** Korean labels for each Visibility, shown in selectors and badges. */
+export const VISIBILITY_LABELS: Record<PostVisibility, string> = {
+  PUBLIC: '공개',
+  UNLISTED: '링크 공개',
+  PRIVATE: '비공개',
+}
+
 export type Post = {
   id: number
   author: PostAuthor
