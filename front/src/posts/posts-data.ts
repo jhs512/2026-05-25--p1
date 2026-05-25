@@ -76,6 +76,35 @@ export function postQueryOptions(id: number) {
   })
 }
 
+export type PostInput = {
+  title: string
+  content: string
+  visibility: PostVisibility
+}
+
+/** Creates a Post via create_post RPC (logged-in ACTIVE Member; author = caller,
+ * enforced server-side). Returns the new Post's id. */
+export async function createPost(input: PostInput): Promise<number> {
+  const { data, error } = await supabase.rpc('create_post', {
+    p_title: input.title,
+    p_content: input.content,
+    p_visibility: input.visibility,
+  })
+  if (error) throw error
+  return (data as { id: number }).id
+}
+
+/** Updates a Post via modify_post RPC (author or admin only, enforced server-side). */
+export async function modifyPost(id: number, input: PostInput): Promise<void> {
+  const { error } = await supabase.rpc('modify_post', {
+    p_post_id: id,
+    p_title: input.title,
+    p_content: input.content,
+    p_visibility: input.visibility,
+  })
+  if (error) throw error
+}
+
 /** Deletes a Post via delete_post RPC (author or admin only, enforced server-side). */
 export async function deletePost(id: number): Promise<void> {
   const { error } = await supabase.rpc('delete_post', { p_post_id: id })
