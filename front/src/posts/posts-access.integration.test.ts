@@ -15,9 +15,23 @@ const MARKER = '__integration-test-post__'
 let seededId: number
 
 beforeAll(async () => {
+  // posts.author_id is NOT NULL and references a Member, so the fixture needs a
+  // real Member id. service_role bypasses RLS for this setup.
+  const { data: member, error: memberError } = await admin
+    .from('members')
+    .select('id')
+    .limit(1)
+    .single()
+  if (memberError) throw memberError
+
   const { data, error } = await admin
     .from('posts')
-    .insert({ title: MARKER, content: 'integration fixture' })
+    .insert({
+      author_id: member.id,
+      title: MARKER,
+      content: 'integration fixture',
+      visibility: 'PUBLIC',
+    })
     .select('id')
     .single()
   if (error) throw error
@@ -55,8 +69,8 @@ describe('public.posts RLS boundary (anon)', () => {
   })
 })
 
-describe('fetchPosts (data access)', () => {
-  it('returns Posts newest-first with the camelCase Post shape', async () => {
+describe('fetchPosts (data access via get_posts RPC)', () => {
+  it('returns Posts newest-first with the camelCase Post shape including author', async () => {
     const posts = await fetchPosts()
 
     expect(posts.length).toBeGreaterThan(0)
@@ -66,14 +80,27 @@ describe('fetchPosts (data access)', () => {
       expect.objectContaining({
         id: expect.any(Number),
         title: expect.any(String),
+        content: expect.any(String),
+        visibility: expect.any(String),
         createdAt: expect.any(String),
         modifiedAt: expect.any(String),
       }),
     )
-    expect(first).toHaveProperty('content') // string | null
+    expect(first.author).toEqual(
+      expect.objectContaining({
+        id: expect.any(Number),
+        username: expect.any(String),
+        displayName: expect.any(String),
+      }),
+    )
 
     const times = posts.map((p) => new Date(p.createdAt).getTime())
     const newestFirst = [...times].sort((a, b) => b - a)
     expect(times).toEqual(newestFirst)
+  })
+
+  it('returns only PUBLIC Posts to the anon client (UNLISTED/PRIVATE hidden)', async () => {
+    const posts = await fetchPosts()
+    expect(posts.every((p) => p.visibility === 'PUBLIC')).toBe(true)
   })
 })

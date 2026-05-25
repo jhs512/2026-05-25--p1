@@ -10,12 +10,14 @@ export function PostList({ posts }: { posts: Post[] }) {
           <Card>
             <CardHeader>
               <CardTitle>{post.title}</CardTitle>
+              <p className="text-muted-foreground text-sm">
+                {post.author.displayName}
+                <span className="ml-1 opacity-70">@{post.author.username}</span>
+              </p>
             </CardHeader>
-            {post.content && (
-              <CardContent className="text-muted-foreground whitespace-pre-line">
-                {post.content}
-              </CardContent>
-            )}
+            <CardContent className="text-muted-foreground whitespace-pre-line">
+              {post.content}
+            </CardContent>
           </Card>
         </li>
       ))}
