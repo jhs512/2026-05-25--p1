@@ -1,5 +1,15 @@
 # CLAUDE.md
 
+## Standard workflow
+
+Features normally move through these skills in order:
+
+1. `/grill-with-docs` — interrogate the plan; resolve domain terms into `CONTEXT.md` and decisions into `docs/adr/`.
+2. `/to-prd` — turn the grilled context into a PRD on the issue tracker.
+3. `/to-issues` — break the PRD into independently-grabbable tracer-bullet issues.
+4. `/tdd` **or** `/diagnose` — build features test-first, or run the diagnosis loop for hard bugs/regressions.
+5. `/improve-codebase-architecture` — find refactoring/deepening opportunities once the work lands.
+
 ## Agent skills
 
 ### Issue tracker
