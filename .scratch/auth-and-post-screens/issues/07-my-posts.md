@@ -1,6 +1,6 @@
 # 내글 보기
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

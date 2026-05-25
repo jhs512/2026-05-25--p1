@@ -1,6 +1,6 @@
 # 내정보
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

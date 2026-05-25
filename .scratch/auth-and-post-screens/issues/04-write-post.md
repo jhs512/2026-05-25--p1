@@ -1,6 +1,6 @@
 # 글쓰기
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

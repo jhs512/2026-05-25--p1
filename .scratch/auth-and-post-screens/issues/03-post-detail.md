@@ -1,6 +1,6 @@
 # 상세 페이지
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

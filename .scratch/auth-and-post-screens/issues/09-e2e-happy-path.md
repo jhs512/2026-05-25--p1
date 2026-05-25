@@ -1,6 +1,6 @@
 # E2E happy path (Playwright 도입)
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

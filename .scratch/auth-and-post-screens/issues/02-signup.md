@@ -1,6 +1,6 @@
 # 회원가입
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

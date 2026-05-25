@@ -1,6 +1,6 @@
 # 인증 골격 + 로그인
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 

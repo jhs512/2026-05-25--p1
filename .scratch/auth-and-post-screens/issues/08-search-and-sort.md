@@ -1,6 +1,6 @@
 # 검색·정렬
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 
