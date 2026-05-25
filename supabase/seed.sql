@@ -26,7 +26,10 @@ begin
         insert into auth.users (
             instance_id, id, aud, role, email, encrypted_password,
             email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-            created_at, updated_at
+            created_at, updated_at,
+            -- GoTrue가 문자열로 읽는 토큰 컬럼들. raw INSERT로 NULL로 두면 로그인 시
+            -- "Database error querying schema"가 난다 → 빈 문자열로 채운다.
+            confirmation_token, recovery_token, email_change, email_change_token_new
         )
         values (
             '00000000-0000-0000-0000-000000000000',
@@ -39,7 +42,8 @@ begin
             jsonb_build_object('provider', 'email', 'providers', array['email']),
             jsonb_build_object('name', u.name, 'nickname', u.name, 'avatar_url', null),
             now(),
-            now()
+            now(),
+            '', '', '', ''
         );
 
         insert into auth.identities (

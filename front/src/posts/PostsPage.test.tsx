@@ -1,17 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { ReactElement } from 'react'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Post } from '@/posts/post'
 
-// Mock our own seam, never supabase-js (ADR-0002). The factory creates the
-// fetchPosts mock and wires postsQueryOptions to it, so the real data-access
-// module (and its supabase client import) is never loaded.
+// Mock our own seam, never supabase-js (ADR-0002). searchPostsQueryOptions wires
+// to the fetchPosts mock so the real data-access module is never loaded.
 vi.mock('@/posts/posts-data', () => {
   const fetchPosts = vi.fn()
   return {
     fetchPosts,
-    postsQueryOptions: { queryKey: ['posts'], queryFn: fetchPosts },
+    searchPostsQueryOptions: (q: { keyword?: string | null; sort?: string }) => ({
+      queryKey: ['posts', 'search', q.keyword ?? null, q.sort ?? 'CREATED_AT_DESC'],
+      queryFn: () => fetchPosts(q),
+    }),
   }
 })
 
@@ -19,10 +22,12 @@ import { fetchPosts } from '@/posts/posts-data'
 import { PostsPage } from '@/posts/PostsPage'
 
 function renderWithQuery(ui: ReactElement) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
+
+function renderPage(onSearch = vi.fn()) {
+  return renderWithQuery(<PostsPage keyword="" sort="CREATED_AT_DESC" onSearch={onSearch} />)
 }
 
 const samplePosts: Post[] = [
@@ -47,52 +52,54 @@ const samplePosts: Post[] = [
 ]
 
 describe('PostsPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  beforeEach(() => vi.clearAllMocks())
 
   it('shows a loading state while Posts are being fetched', () => {
-    // A promise that never resolves keeps the query pending.
     vi.mocked(fetchPosts).mockReturnValue(new Promise<Post[]>(() => {}))
-
-    renderWithQuery(<PostsPage />)
-
+    renderPage()
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('shows an empty state when there are no Posts', async () => {
     vi.mocked(fetchPosts).mockResolvedValue([])
-
-    renderWithQuery(<PostsPage />)
-
+    renderPage()
     expect(await screen.findByText('아직 게시글이 없습니다.')).toBeInTheDocument()
   })
 
   it('shows an error state when fetching Posts fails', async () => {
     vi.mocked(fetchPosts).mockRejectedValue(new Error('boom'))
-
-    renderWithQuery(<PostsPage />)
-
+    renderPage()
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 
-  it('renders each Post title and body once posts load', async () => {
+  it('renders each Post title, body and author once posts load', async () => {
     vi.mocked(fetchPosts).mockResolvedValue(samplePosts)
-
-    renderWithQuery(<PostsPage />)
-
+    renderPage()
     expect(await screen.findByText('최신 글')).toBeInTheDocument()
     expect(screen.getByText('오래된 글')).toBeInTheDocument()
     expect(screen.getByText('가장 최근 본문')).toBeInTheDocument()
-    expect(screen.getByText('예전 본문')).toBeInTheDocument()
+    expect(screen.getByText('유저원')).toBeInTheDocument()
+    expect(screen.getByText('유저투')).toBeInTheDocument()
   })
 
-  it('renders each Post author once posts load', async () => {
-    vi.mocked(fetchPosts).mockResolvedValue(samplePosts)
+  it('reports the keyword on search submit', async () => {
+    vi.mocked(fetchPosts).mockResolvedValue([])
+    const onSearch = vi.fn()
+    renderPage(onSearch)
 
-    renderWithQuery(<PostsPage />)
+    await userEvent.type(screen.getByLabelText('검색어'), '한글')
+    await userEvent.click(screen.getByRole('button', { name: '검색' }))
 
-    expect(await screen.findByText('유저원')).toBeInTheDocument()
-    expect(screen.getByText('유저투')).toBeInTheDocument()
+    expect(onSearch).toHaveBeenCalledWith({ keyword: '한글', sort: 'CREATED_AT_DESC' })
+  })
+
+  it('reports a sort change', async () => {
+    vi.mocked(fetchPosts).mockResolvedValue([])
+    const onSearch = vi.fn()
+    renderPage(onSearch)
+
+    await userEvent.selectOptions(screen.getByLabelText('정렬'), 'CREATED_AT_ASC')
+
+    expect(onSearch).toHaveBeenCalledWith({ keyword: '', sort: 'CREATED_AT_ASC' })
   })
 })
