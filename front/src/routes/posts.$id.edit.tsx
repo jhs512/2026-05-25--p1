@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { requireSession } from '@/auth/guards'
 import { useAuth } from '@/auth/AuthProvider'
 import { canManagePost } from '@/auth/session'
 import { PostForm } from '@/posts/PostForm'
-import { postQueryOptions, modifyPost } from '@/posts/posts-data'
+import { postQueryOptions, useUpdatePost } from '@/posts/posts-data'
 
 export const Route = createFileRoute('/posts/$id/edit')({
   beforeLoad: ({ context, location }) => requireSession(context.auth, location.href),
@@ -16,7 +16,7 @@ function EditPostRoute() {
   const postId = Number(id)
   const { member } = useAuth()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const updatePost = useUpdatePost(postId)
 
   const { data: post, isPending, isError } = useQuery(postQueryOptions(postId))
 
@@ -30,9 +30,7 @@ function EditPostRoute() {
       submitLabel="수정"
       initial={{ title: post.title, content: post.content, visibility: post.visibility }}
       onSubmit={async (value) => {
-        await modifyPost(postId, value)
-        await queryClient.invalidateQueries({ queryKey: ['post', postId] })
-        await queryClient.invalidateQueries({ queryKey: ['posts'] })
+        await updatePost.mutateAsync(value)
         await navigate({ to: '/posts/$id', params: { id } })
       }}
     />

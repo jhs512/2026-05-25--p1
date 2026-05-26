@@ -1,5 +1,11 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+/** Cache key for the current Member's editable profile. Defined once so the read
+ * query and the write hook stay in lockstep. */
+export const memberKeys = {
+  mine: (memberId: number) => ['my-member', memberId] as const,
+}
 
 /** The current Member's editable profile (read from the members table for fields
  * not carried in the JWT, e.g. profile_image_url). */
@@ -31,7 +37,7 @@ export async function fetchMyMember(memberId: number): Promise<MyMember | null> 
 
 export function myMemberQueryOptions(memberId: number) {
   return queryOptions({
-    queryKey: ['my-member', memberId],
+    queryKey: memberKeys.mine(memberId),
     queryFn: () => fetchMyMember(memberId),
   })
 }
@@ -54,4 +60,13 @@ export async function modifyMember(input: MemberProfileInput): Promise<void> {
     p_profile_image_url: input.profileImageUrl ?? undefined,
   })
   if (error) throw error
+}
+
+/** Update the current Member's profile, then refresh the cached profile. */
+export function useUpdateMyMember(memberId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: MemberProfileInput) => modifyMember(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: memberKeys.mine(memberId) }),
+  })
 }

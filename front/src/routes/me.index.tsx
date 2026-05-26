@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { requireSession } from '@/auth/guards'
 import { useAuth } from '@/auth/AuthProvider'
 import { signOut } from '@/auth/session'
-import { myMemberQueryOptions, modifyMember } from '@/members/members-data'
+import { myMemberQueryOptions, useUpdateMyMember } from '@/members/members-data'
 import { ProfileForm } from '@/members/ProfileForm'
 
 export const Route = createFileRoute('/me/')({
@@ -14,8 +14,8 @@ export const Route = createFileRoute('/me/')({
 function MeRoute() {
   const { member } = useAuth()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const memberId = member!.memberId
+  const updateMember = useUpdateMyMember(memberId)
 
   const { data, isPending, isError } = useQuery(myMemberQueryOptions(memberId))
 
@@ -31,12 +31,11 @@ function MeRoute() {
           profileImageUrl: data.profileImageUrl ?? '',
         }}
         onSubmit={async (value) => {
-          await modifyMember({
+          await updateMember.mutateAsync({
             username: value.username,
             displayName: value.displayName,
             profileImageUrl: value.profileImageUrl.trim() === '' ? null : value.profileImageUrl.trim(),
           })
-          await queryClient.invalidateQueries({ queryKey: ['my-member', memberId] })
         }}
       />
       <div className="mx-auto max-w-sm px-6">
