@@ -31,4 +31,9 @@ test('회원가입 → 글쓰기 → 목록·상세에서 확인', async ({ page
   // 목록에서 확인
   await page.getByRole('link', { name: '게시판' }).click()
   await expect(page.getByText(title)).toBeVisible()
+
+  // 목록 → 상세: 글 카드를 클릭하면 상세 페이지로 이동
+  await page.getByRole('link', { name: new RegExp(title) }).click()
+  await expect(page).toHaveURL(/\/posts\/\d+/)
+  await expect(page.getByRole('heading', { name: title })).toBeVisible()
 })

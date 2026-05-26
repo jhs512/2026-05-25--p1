@@ -55,7 +55,10 @@ export async function modifyMember(input: MemberProfileInput): Promise<void> {
   const { error } = await supabase.rpc('modify_member', {
     p_username: input.username,
     p_display_name: input.displayName,
-    p_profile_image_url: input.profileImageUrl,
+    // generated arg type is `string` (DEFAULT NULL); the function assigns it
+    // straight to the column, so omitting it (undefined) clears the image just
+    // like an explicit null would.
+    p_profile_image_url: input.profileImageUrl ?? undefined,
   })
   if (error) throw error
 }

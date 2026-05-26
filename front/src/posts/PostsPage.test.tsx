@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -17,6 +17,29 @@ vi.mock('@/posts/posts-data', () => {
     }),
   }
 })
+
+// PostList renders a TanStack <Link>; this unit test has no Router context, so
+// stub Link to a plain anchor with the resolved href. Real routing is covered by e2e.
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    params,
+    className,
+    children,
+  }: {
+    to: string
+    params?: Record<string, string>
+    className?: string
+    children: ReactNode
+  }) => (
+    <a
+      href={to.replace(/\$(\w+)/g, (_m, key) => params?.[key] ?? '')}
+      className={className}
+    >
+      {children}
+    </a>
+  ),
+}))
 
 import { fetchPosts } from '@/posts/posts-data'
 import { PostsPage } from '@/posts/PostsPage'
@@ -80,6 +103,14 @@ describe('PostsPage', () => {
     expect(screen.getByText('가장 최근 본문')).toBeInTheDocument()
     expect(screen.getByText('유저원')).toBeInTheDocument()
     expect(screen.getByText('유저투')).toBeInTheDocument()
+  })
+
+  it('links each Post to its detail route', async () => {
+    vi.mocked(fetchPosts).mockResolvedValue(samplePosts)
+    renderPage()
+
+    const link = await screen.findByRole('link', { name: /최신 글/ })
+    expect(link).toHaveAttribute('href', '/posts/2')
   })
 
   it('reports the keyword on search submit', async () => {

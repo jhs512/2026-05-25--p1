@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 
 // The anon key is public by design and shipped in the bundle; RLS is the
 // authorization boundary (ADR-0001). Values come from VITE_-prefixed env vars
@@ -12,4 +13,6 @@ if (!url || !anonKey) {
   )
 }
 
-export const supabase = createClient(url, anonKey)
+// Typed with the generated Database schema so every .rpc()/.from() call is checked
+// against the live Postgres types (regenerate via `supabase gen types typescript`).
+export const supabase = createClient<Database>(url, anonKey)

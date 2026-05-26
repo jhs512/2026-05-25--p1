@@ -1,28 +1,14 @@
 import { queryOptions } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
 import type { Post, PostVisibility } from '@/posts/post'
 
-/** Common columns shared by get_posts and get_post rows (author-joined Post). */
-type PostAuthorRow = {
-  id: number
-  author_id: number
-  author_username: string | null
-  author_display_name: string | null
-  author_profile_image_url: string | null
-  title: string
-  content: string
-  visibility: PostVisibility
-  created_at: string
-  modified_at: string
-}
+/** Author-joined Post row, taken straight from the generated DB types so a
+ * get_posts/get_post column change surfaces here at compile time. get_posts rows
+ * carry extra score/total_count fields, which toPost simply ignores. */
+type PostRow = Database['public']['Functions']['get_post']['Returns'][number]
 
-/** get_posts adds relevance score and the total row count for paging. */
-type PostListRow = PostAuthorRow & {
-  score: number | null
-  total_count: number
-}
-
-function toPost(row: PostAuthorRow): Post {
+function toPost(row: PostRow): Post {
   return {
     id: row.id,
     author: {
@@ -58,15 +44,15 @@ export type PostsQuery = {
  * are visible (ADR-0004). The only place a Post listing query is constructed. */
 export async function fetchPosts(query: PostsQuery = {}): Promise<Post[]> {
   const { data, error } = await supabase.rpc('get_posts', {
-    p_keyword: query.keyword ?? null,
-    p_author_id: query.authorId ?? null,
+    p_keyword: query.keyword ?? undefined,
+    p_author_id: query.authorId ?? undefined,
     p_sort: query.sort ?? 'CREATED_AT_DESC',
     p_limit: query.limit ?? 20,
     p_offset: query.offset ?? 0,
   })
 
   if (error) throw error
-  return (data as PostListRow[]).map(toPost)
+  return (data ?? []).map(toPost)
 }
 
 export const postsQueryOptions = queryOptions({
@@ -100,7 +86,7 @@ export function myPostsQueryOptions(authorId: number) {
 export async function fetchPost(id: number): Promise<Post | null> {
   const { data, error } = await supabase.rpc('get_post', { p_post_id: id })
   if (error) throw error
-  const rows = (data ?? []) as PostAuthorRow[]
+  const rows = data ?? []
   return rows.length > 0 ? toPost(rows[0]) : null
 }
 
@@ -126,7 +112,7 @@ export async function createPost(input: PostInput): Promise<number> {
     p_visibility: input.visibility,
   })
   if (error) throw error
-  return (data as { id: number }).id
+  return data.id
 }
 
 /** Updates a Post via modify_post RPC (author or admin only, enforced server-side). */
