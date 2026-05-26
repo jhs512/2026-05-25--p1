@@ -33,6 +33,7 @@ supabase migration new <name>        # 새 마이그레이션 생성 → supabas
 - 마이그레이션: `supabase/migrations/*.sql` (예: `*_create_posts.sql`)
 - 시드: `supabase/seed.sql` — `db reset` 시 자동 로드
 - Studio(웹 콘솔): http://127.0.0.1:54323
+- ⚠️ **스키마(마이그레이션)를 바꾸면 TS 타입은 자동 갱신되지 않는다.** `cd front && pnpm gen:types`로 `src/lib/database.types.ts`를 재생성하고 변경과 함께 커밋한다 — 안 하면 `createClient<Database>`가 낡은 타입을 검사해 "안전 착각"이 생긴다. (재생성은 마이그레이션이 적용된 로컬 스택 기동 상태에서)
 
 ### 2. 프론트 (`front/`)
 ```bash
@@ -43,6 +44,7 @@ pnpm lint               # eslint
 pnpm test               # fast 스위트 (jsdom, 외부 의존 없음) — 매 저장/CI
 pnpm test:watch         # fast 스위트 watch 모드
 pnpm test:integration   # 통합 스위트 — 사전에 `supabase start` 필수 (ADR-0002)
+pnpm gen:types          # DB 스키마 → src/lib/database.types.ts 재생성 (사전 supabase 기동 필수)
 ```
 
 ### 3. 환경변수 (`front/.env.local`, `supabase status` 값)
