@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 
+// eslint-disable-next-line react-refresh/only-export-components -- schema co-located with its form
 export const profileSchema = z.object({
   username: z.string().trim().min(1, 'username은 필수입니다.').max(50, 'username은 50자를 넘을 수 없습니다.'),
   displayName: z.string().trim().min(1, '표시이름은 필수입니다.').max(50, '표시이름은 50자를 넘을 수 없습니다.'),
