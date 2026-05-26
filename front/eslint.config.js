@@ -19,4 +19,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // TanStack file-based route modules must `export const Route`, and main.tsx
+    // is the app entry — the "component-only export" fast-refresh rule does not
+    // apply to either, so disable it just for these.
+    files: ['src/routes/**/*.tsx', 'src/main.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

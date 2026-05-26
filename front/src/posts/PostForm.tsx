@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { VISIBILITY_LABELS, type PostVisibility } from '@/posts/post'
 import type { PostInput } from '@/posts/posts-data'
 
+// eslint-disable-next-line react-refresh/only-export-components -- schema co-located with its form
 export const postSchema = z.object({
   title: z.string().trim().min(1, '제목은 필수입니다.').max(200, '제목은 200자를 넘을 수 없습니다.'),
   content: z.string().trim().min(1, '내용은 필수입니다.'),

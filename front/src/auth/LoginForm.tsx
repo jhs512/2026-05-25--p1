@@ -3,6 +3,7 @@ import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { signIn } from '@/auth/session'
 
+// eslint-disable-next-line react-refresh/only-export-components -- schema co-located with its form
 export const loginSchema = z.object({
   email: z.string().email('올바른 이메일을 입력하세요.'),
   password: z.string().min(6, '비밀번호는 6자 이상이어야 합니다.'),
