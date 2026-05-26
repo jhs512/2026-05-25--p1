@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { requireSession } from '@/auth/guards'
 import { useAuth } from '@/auth/AuthProvider'
-import { canManagePost } from '@/auth/member'
+import { canManagePost } from '@/auth/session'
 import { PostForm } from '@/posts/PostForm'
 import { postQueryOptions, modifyPost } from '@/posts/posts-data'
 

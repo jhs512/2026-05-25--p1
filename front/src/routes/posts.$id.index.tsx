@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { postQueryOptions, deletePost } from '@/posts/posts-data'
 import { useAuth } from '@/auth/AuthProvider'
-import { canManagePost } from '@/auth/member'
+import { canManagePost } from '@/auth/session'
 import { PostDetail } from '@/posts/PostDetail'
 
 export const Route = createFileRoute('/posts/$id/')({
