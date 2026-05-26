@@ -10,15 +10,9 @@ export type MyMember = {
   profileImageUrl: string | null
 }
 
-type MemberRow = {
-  id: number
-  username: string
-  display_name: string
-  profile_image_url: string | null
-}
-
 /** Reads the current Member's own row (filtered by id so an ADMIN, whose RLS
- * exposes all members, still gets exactly their own). */
+ * exposes all members, still gets exactly their own). The row is typed by the
+ * generated Database schema (createClient<Database>), so no manual row type. */
 export async function fetchMyMember(memberId: number): Promise<MyMember | null> {
   const { data, error } = await supabase
     .from('members')
@@ -27,12 +21,11 @@ export async function fetchMyMember(memberId: number): Promise<MyMember | null> 
     .maybeSingle()
   if (error) throw error
   if (!data) return null
-  const row = data as MemberRow
   return {
-    id: row.id,
-    username: row.username,
-    displayName: row.display_name,
-    profileImageUrl: row.profile_image_url,
+    id: data.id,
+    username: data.username,
+    displayName: data.display_name,
+    profileImageUrl: data.profile_image_url,
   }
 }
 
