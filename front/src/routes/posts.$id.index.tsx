@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { postQueryOptions, deletePost } from '@/posts/posts-data'
+import { useQuery } from '@tanstack/react-query'
+import { postQueryOptions, useDeletePost } from '@/posts/posts-data'
 import { useAuth } from '@/auth/AuthProvider'
-import { canManagePost } from '@/auth/member'
+import { canManagePost } from '@/auth/session'
 import { PostDetail } from '@/posts/PostDetail'
 
 export const Route = createFileRoute('/posts/$id/')({
@@ -14,17 +14,11 @@ function PostDetailRoute() {
   const postId = Number(id)
   const { member } = useAuth()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const { data: post, isPending, isError } = useQuery(postQueryOptions(postId))
 
-  const del = useMutation({
-    mutationFn: () => deletePost(postId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['posts'] })
-      await navigate({ to: '/' })
-    },
-  })
+  // The hook owns cache invalidation; this route owns where to go afterward.
+  const del = useDeletePost(postId)
 
   if (isPending) return <p role="status" className="p-6">불러오는 중…</p>
   if (isError) return <p role="alert" className="p-6">게시글을 불러오지 못했습니다.</p>
@@ -36,7 +30,9 @@ function PostDetailRoute() {
       canManage={canManagePost(member, post.author.id)}
       onEdit={() => void navigate({ to: '/posts/$id/edit', params: { id } })}
       onDelete={() => {
-        if (window.confirm('이 글을 삭제할까요?')) del.mutate()
+        if (window.confirm('이 글을 삭제할까요?')) {
+          del.mutate(undefined, { onSuccess: () => void navigate({ to: '/' }) })
+        }
       }}
     />
   )

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type { CurrentMember } from '@/auth/member'
+import type { CurrentMember } from '@/auth/session'
 
 /** Session-reactive top navigation (presentational). Renders the signed-in menu
  * when a Member is present, otherwise the signed-out menu. */

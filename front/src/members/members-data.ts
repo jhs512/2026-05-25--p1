@@ -1,5 +1,11 @@
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+/** Cache key for the current Member's editable profile. Defined once so the read
+ * query and the write hook stay in lockstep. */
+export const memberKeys = {
+  mine: (memberId: number) => ['my-member', memberId] as const,
+}
 
 /** The current Member's editable profile (read from the members table for fields
  * not carried in the JWT, e.g. profile_image_url). */
@@ -10,15 +16,9 @@ export type MyMember = {
   profileImageUrl: string | null
 }
 
-type MemberRow = {
-  id: number
-  username: string
-  display_name: string
-  profile_image_url: string | null
-}
-
 /** Reads the current Member's own row (filtered by id so an ADMIN, whose RLS
- * exposes all members, still gets exactly their own). */
+ * exposes all members, still gets exactly their own). The row is typed by the
+ * generated Database schema (createClient<Database>), so no manual row type. */
 export async function fetchMyMember(memberId: number): Promise<MyMember | null> {
   const { data, error } = await supabase
     .from('members')
@@ -27,18 +27,17 @@ export async function fetchMyMember(memberId: number): Promise<MyMember | null> 
     .maybeSingle()
   if (error) throw error
   if (!data) return null
-  const row = data as MemberRow
   return {
-    id: row.id,
-    username: row.username,
-    displayName: row.display_name,
-    profileImageUrl: row.profile_image_url,
+    id: data.id,
+    username: data.username,
+    displayName: data.display_name,
+    profileImageUrl: data.profile_image_url,
   }
 }
 
 export function myMemberQueryOptions(memberId: number) {
   return queryOptions({
-    queryKey: ['my-member', memberId],
+    queryKey: memberKeys.mine(memberId),
     queryFn: () => fetchMyMember(memberId),
   })
 }
@@ -61,4 +60,13 @@ export async function modifyMember(input: MemberProfileInput): Promise<void> {
     p_profile_image_url: input.profileImageUrl ?? undefined,
   })
   if (error) throw error
+}
+
+/** Update the current Member's profile, then refresh the cached profile. */
+export function useUpdateMyMember(memberId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: MemberProfileInput) => modifyMember(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: memberKeys.mine(memberId) }),
+  })
 }

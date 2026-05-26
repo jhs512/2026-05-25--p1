@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
 import { requireSession } from '@/auth/guards'
 import { PostForm } from '@/posts/PostForm'
-import { createPost } from '@/posts/posts-data'
+import { useCreatePost } from '@/posts/posts-data'
 
 export const Route = createFileRoute('/posts/new')({
   beforeLoad: ({ context, location }) => requireSession(context.auth, location.href),
@@ -11,13 +10,12 @@ export const Route = createFileRoute('/posts/new')({
 
 function NewPostRoute() {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const createPost = useCreatePost()
   return (
     <PostForm
       submitLabel="게시"
       onSubmit={async (value) => {
-        const id = await createPost(value)
-        await queryClient.invalidateQueries({ queryKey: ['posts'] })
+        const id = await createPost.mutateAsync(value)
         await navigate({ to: '/posts/$id', params: { id: String(id) } })
       }}
     />
