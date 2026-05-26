@@ -1,10 +1,10 @@
 # CLAUDE.md
 
 ## 작업지침
-- **개발환경 재현성 최우선** — DB 스키마·데이터·설정 변경은 git에 커밋되는 config로만 한다: 마이그레이션(`supabase/migrations/*.sql`)·`seed.sql`·`config.toml`. Supabase MCP의 `execute_sql`·`apply_migration` 등 명령형 변경은 `git clone` 재현을 깨므로 지양하고, **읽기 전용 조회·검증에만** 사용한다. (스키마를 바꿨으면 `pnpm gen:types`로 타입도 재생성·커밋)
+- **개발환경 재현성 최우선** — DB 스키마·데이터·설정 변경은 git에 커밋되는 config로만 한다: 마이그레이션(`supabase/migrations/*.sql`)·`seed.sql`·`config.toml`. Supabase MCP의 `execute_sql`·`apply_migration` 등 명령형 변경은 `git clone` 재현을 깨므로 지양하고, **읽기 전용 조회·검증에만** 사용한다.
 - 모든 문서는 한글로 작성
 - 소스코드 구조적 파악은 codegraph 활용을 우선시
-- 소스코드 수정은 SERENA의 mcp를 활용을 우선시
+- 소스코드 수정은 SERENA의 mcp 활용을 우선시
 - 최대한 matt pocock의 스킬을 활용
 - 항상 /caveman 사용
 
@@ -45,6 +45,7 @@ pnpm lint               # eslint
 pnpm test               # fast 스위트 (jsdom, 외부 의존 없음) — 매 저장/CI
 pnpm test:watch         # fast 스위트 watch 모드
 pnpm test:integration   # 통합 스위트 — 사전에 `supabase start` 필수 (ADR-0002)
+pnpm test:e2e           # E2E (Playwright) — dev 서버 자동 기동, 사전에 supabase 필수
 pnpm gen:types          # DB 스키마 → src/lib/database.types.ts 재생성 (사전 supabase 기동 필수)
 ```
 
